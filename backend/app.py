@@ -1,11 +1,15 @@
-import streamlit as st
+from flask import Flask, request, jsonify, send_file
+from flask_cors import CORS
 from dotenv import load_dotenv
 import os
 import google.generativeai as genai
 from youtube_transcript_api import YouTubeTranscriptApi
 from fpdf import FPDF
+import io
 
-load_dotenv()  # Load all the environment variables
+app = Flask(__name__)
+CORS(app)  
+load_dotenv()
 
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
@@ -13,7 +17,6 @@ prompt = """You are YouTube video summarizer. You will be taking the transcript 
 and summarizing the entire video and providing the important summary in points
 within 250 words. Please provide the summary of the text given here:  """
 
-# Function to extract transcript details from YouTube videos
 def extract_transcript_details(youtube_video_url):
     try:
         video_id = youtube_video_url.split("=")[1]
@@ -23,15 +26,13 @@ def extract_transcript_details(youtube_video_url):
             transcript += " " + i["text"]
         return transcript
     except Exception as e:
-        raise e
+        return str(e)
 
-# Function to generate summary using Google Gemini Pro
 def generate_gemini_content(transcript_text, prompt):
     model = genai.GenerativeModel("gemini-pro")
     response = model.generate_content(prompt + transcript_text)
     return response.text
 
-# Function to create PDF from summary
 def create_pdf(summary):
     pdf = FPDF()
     pdf.add_page()
@@ -39,28 +40,30 @@ def create_pdf(summary):
     pdf.multi_cell(0, 10, summary)
     return pdf
 
-st.title("YouTube Transcript to Detailed Notes Converter")
-youtube_link = st.text_input("Enter YouTube Video Link:")
-
-if youtube_link:
-    video_id = youtube_link.split("=")[1]
-    st.image(f"http://img.youtube.com/vi/{video_id}/0.jpg", use_column_width=True)
-
-if st.button("Get Detailed Notes"):
+@app.route('/summarize', methods=['POST'])
+def summarize():
+    data = request.json
+    youtube_link = data.get('youtube_link')
     transcript_text = extract_transcript_details(youtube_link)
     if transcript_text:
         summary = generate_gemini_content(transcript_text, prompt)
-        st.markdown("## Detailed Notes:")
-        st.write(summary)
-        
-        # Create PDF file from the summary
-        pdf = create_pdf(summary)
-        pdf_output = pdf.output(dest='S').encode('latin1')  # Convert PDF to binary
+        return jsonify({"summary": summary})
+    else:
+        return jsonify({"error": "Could not extract transcript"}), 400
 
-        # Add a download button for the PDF
-        st.download_button(
-            label="Download Summary as PDF",
-            data=pdf_output,
-            file_name="summary.pdf",
-            mime="application/pdf"
-        )
+@app.route('/download_pdf', methods=['POST'])
+def download_pdf():
+    data = request.json
+    summary = data.get('summary')
+    pdf = create_pdf(summary)
+    pdf_output = pdf.output(dest='S').encode('latin1')
+
+    return send_file(
+        io.BytesIO(pdf_output),
+        mimetype='application/pdf',
+        as_attachment=True,
+        download_name='summary.pdf'
+    )
+
+if __name__ == '__main__':
+    app.run(debug=True)
