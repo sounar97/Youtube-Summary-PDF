@@ -62,30 +62,31 @@ function App() {
 
     return (
         <div className="bg-lightPink min-h-screen">
-            <nav className="bg-black text-white p-4 flex justify-between items-center">
-                <div className="text-xl font-bold">YouTube Summarizer</div>
-                <div>
-                    <a href="#home" className="mx-2">HOME</a>
-                    <a href="#howto" className="mx-2">HOW TO DO IT</a>
+            <nav className="bg-black text-white p-4 flex justify-center items-center">
+                <div className="flex space-x-4">
+                    <a href="#home" className="mx-2 font-bold">HOME</a>
+                    <a href="#howto" className="mx-2 font-bold">HOW TO DO IT</a>
                 </div>
             </nav>
 
             <div id="home" className="flex flex-col items-center justify-center mt-16">
                 <h1 className="text-3xl font-bold text-center mb-8">YouTube Video Summarizer</h1>
-                <input
-                    type="text"
-                    placeholder="Enter YouTube Video Link"
-                    value={youtubeLink}
-                    onChange={(e) => setYoutubeLink(e.target.value)}
-                    className="border-2 border-black rounded p-2 w-1/2 mb-4"
-                />
-                <button
-                    onClick={handleSummarize}
-                    disabled={loading}
-                    className="bg-black text-white px-6 py-2 rounded"
-                >
-                    {loading ? 'Processing...' : 'Generate Summary'}
-                </button>
+                <div className="w-full sm:w-3/4 md:w-1/2 flex flex-col sm:flex-row justify-center items-center px-4">
+                    <input
+                        type="text"
+                        placeholder="Enter YouTube Video Link"
+                        value={youtubeLink}
+                        onChange={(e) => setYoutubeLink(e.target.value)}
+                        className="border-2 border-black rounded p-2 w-full sm:w-2/3 mb-4 sm:mb-0"
+                    />
+                    <button
+                        onClick={handleSummarize}
+                        disabled={loading}
+                        className="bg-black text-white px-6 py-2 rounded w-auto sm:ml-4"
+                    >
+                        {loading ? 'Processing...' : 'Generate Summary'}
+                    </button>
+                </div>
 
                 {thumbnail && (
                     <div className="mt-8">
@@ -109,18 +110,18 @@ function App() {
                 {error && <p className="text-red-500 mt-4">{error}</p>}
             </div>
 
-            <div id="howto" className="bg-lightBlue mt-16 p-8">
+            <div id="howto" className="mt-16 p-8">
                 <h2 className="text-2xl font-bold text-center mb-8">How to Use</h2>
-                <div className="flex justify-around">
-                    <div className="bg-white p-4 rounded shadow-md max-w-xs">
+                <div className="flex flex-col sm:flex-row justify-around">
+                    <div className="bg-lightBlue p-4 rounded shadow-md mb-4 sm:mb-0 sm:mr-4 max-w-xs">
                         <h3 className="text-xl font-semibold mb-2">Step 1</h3>
                         <p>Enter the YouTube video link in the input field.</p>
                     </div>
-                    <div className="bg-white p-4 rounded shadow-md max-w-xs">
+                    <div className="bg-lightBlue p-4 rounded shadow-md mb-4 sm:mb-0 sm:mr-4 max-w-xs">
                         <h3 className="text-xl font-semibold mb-2">Step 2</h3>
                         <p>Click on the 'Generate Summary' button to get the video summary.</p>
                     </div>
-                    <div className="bg-white p-4 rounded shadow-md max-w-xs">
+                    <div className="bg-lightBlue p-4 rounded shadow-md max-w-xs">
                         <h3 className="text-xl font-semibold mb-2">Step 3</h3>
                         <p>Download the summary as a PDF using the 'Download as PDF' button.</p>
                     </div>
