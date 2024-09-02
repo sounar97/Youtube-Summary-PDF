@@ -33,7 +33,7 @@ function App() {
                 setError('Invalid YouTube link');
             }
 
-            const response = await axios.post('http://localhost:5000/summarize', {
+            const response = await axios.post('/api/summarize', {
                 youtube_link: youtubeLink,
             });
             setSummary(response.data.summary);
@@ -46,7 +46,7 @@ function App() {
 
     const handleDownloadPDF = async () => {
         try {
-            const response = await axios.post('http://localhost:5000/download_pdf', {
+            const response = await axios.post('/api/download_pdf', {
                 summary,
             }, { responseType: 'blob' });
 
