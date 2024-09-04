@@ -10,7 +10,7 @@ function App() {
     const [loading, setLoading] = useState(false);
 
     const extractVideoId = (url) => {
-        const regex = /(?:https?:\/\/)?(?:www\.)?youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|.+\?v=|.*\/)([a-zA-Z0-9_-]{11})|(?:https?:\/\/)?(?:www\.)?youtu\.be\/([a-zA-Z0-9_-]{11})/;
+        const regex = /(?:https?:\/\/)?(?:www\.)?youtube.com\/(?:[^/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|.+\?v=|.*\/)([a-zA-Z0-9_-]{11})|(?:https?:\/\/)?(?:www\.)?youtu.be\/([a-zA-Z0-9_-]{11})/;
         const match = url.match(regex);
         return match ? (match[1] || match[2]) : null;
     };
@@ -33,7 +33,7 @@ function App() {
                 setError('Invalid YouTube link');
             }
 
-            const response = await axios.post('/api/summarize', {
+            const response = await axios.post('https://youtube-1o25dfk5e-sounar97s-projects.vercel.app/api/summarize', {
                 youtube_link: youtubeLink,
             });
             setSummary(response.data.summary);
@@ -46,7 +46,7 @@ function App() {
 
     const handleDownloadPDF = async () => {
         try {
-            const response = await axios.post('/api/download_pdf', {
+            const response = await axios.post('https://youtube-1o25dfk5e-sounar97s-projects.vercel.app/api/download_pdf', {
                 summary,
             }, { responseType: 'blob' });
 
