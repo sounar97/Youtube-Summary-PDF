@@ -94,8 +94,10 @@ cd Youtube-Summary-PDF
 
 ## Screenshots
 
-![Screenshot 1](<img width="960" alt="image" src="https://github.com/user-attachments/assets/08df1fe9-2c83-4c65-ba92-f00dc89c00a3">
-)
+![Screenshot 1](frontend/public/Screenshot_20240906-235249.png)
+![Screenshot 2](frontend/public/Screenshot_20240906-235402.png)
+![Screenshot 3](frontend/public/Screenshot_20240906-235352.png)
+
 
 ## Contributing
 
