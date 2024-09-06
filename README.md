@@ -3,6 +3,11 @@
 
 A full-stack application that takes a YouTube video link, generates a summarized version of the video's transcript, and allows users to download the summary as a PDF. The application uses React for the frontend and Flask for the backend.
 
+
+## Demo
+
+[![Watch the demo video](https://img.shields.io/badge/Watch-Demo-brightgreen)](https://youtu.be/sDAcp575n7I?si=Ya5wRnoWMqe4A7AM)
+
 ## Features
 
 - **YouTube Transcript Extraction:** Automatically fetches the transcript of a YouTube video.
@@ -86,10 +91,6 @@ cd Youtube-Summary-PDF
 1. Enter the YouTube video link in the input field.
 2. Click the "Generate Summary" button to retrieve the summarized transcript.
 3. Once the summary is generated, you can download it as a PDF.
-
-## Demo
-
-[![Watch the demo video](https://img.shields.io/badge/Watch-Demo-brightgreen)]()
 
 ## Screenshots
 
