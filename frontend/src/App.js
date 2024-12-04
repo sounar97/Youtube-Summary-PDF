@@ -1,137 +1,138 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown from 'react-markdown';  // Import react-markdown
 
 function App() {
-    const [youtubeLink, setYoutubeLink] = useState('');
-    const [summary, setSummary] = useState('');
-    const [thumbnail, setThumbnail] = useState('');
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
+  const [query, setQuery] = useState('');
+  const [videos, setVideos] = useState([]);
+  const [summary, setSummary] = useState('');
+  const [loading, setLoading] = useState(false);
 
-    const extractVideoId = (url) => {
-        const regex = /(?:https?:\/\/)?(?:www\.)?youtube.com\/(?:[^/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|.+\?v=|.*\/)([a-zA-Z0-9_-]{11})|(?:https?:\/\/)?(?:www\.)?youtu.be\/([a-zA-Z0-9_-]{11})/;
-        const match = url.match(regex);
-        return match ? (match[1] || match[2]) : null;
-    };
+  // Handle topic search
+  const handleSearch = async () => {
+    if (!query) return;
 
-    const handleSummarize = async () => {
-        if (!youtubeLink) {
-            setError('Please enter a YouTube link');
-            return;
-        }
+    setLoading(true);
+    setSummary(''); // Clear summary on new search
+    try {
+      const response = await axios.post('http://127.0.0.1:5000/api/search', { query });
+      setVideos(response.data.videos); // Assuming 'videos' is returned in the response
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching videos:', error);
+      setLoading(false);
+    }
+  };
 
-        setLoading(true);
-        setError('');
-        try {
-            const videoId = extractVideoId(youtubeLink);
-            if (videoId) {
-                const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-                setThumbnail(thumbnailUrl);
-            } else {
-                setThumbnail('');
-                setError('Invalid YouTube link');
-            }
+  // Handle video selection for summarization
+  const handleSummarize = async (videoUrl) => {
+    setLoading(true);
+    try {
+      const response = await axios.post('http://127.0.0.1:5000/api/summarize', { videoUrl, downloadPdf: false });
+      setSummary(response.data.summary);  // Store the summary as plain text
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching summary:', error);
+      setLoading(false);
+    }
+  };
 
-            const response = await axios.post('https://youtube-1o25dfk5e-sounar97s-projects.vercel.app/api/summarize', {
-                youtube_link: youtubeLink,
-            });
-            setSummary(response.data.summary);
-        } catch (err) {
-            setError('Error generating summary');
-        } finally {
-            setLoading(false);
-        }
-    };
+  // Handle PDF download
+  const handleDownloadPDF = async (videoUrl) => {
+    setLoading(true);
+    try {
+      const response = await axios.post('http://127.0.0.1:5000/api/summarize', { videoUrl, downloadPdf: true }, { responseType: 'blob' });
+      // Create a temporary download link for the PDF
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'video_summary.pdf';
+      link.click();
+      setLoading(false);
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      setLoading(false);
+    }
+  };
 
-    const handleDownloadPDF = async () => {
-        try {
-            const response = await axios.post('https://youtube-1o25dfk5e-sounar97s-projects.vercel.app/api/download_pdf', {
-                summary,
-            }, { responseType: 'blob' });
+  return (
+    <div className="min-h-screen bg-gray-100 p-4">
+      <div className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h1 className="text-2xl font-bold mb-4">YouTube Video Summarizer</h1>
 
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', 'summary.pdf');
-            document.body.appendChild(link);
-            link.click();
-        } catch (err) {
-            setError('Error downloading PDF');
-        }
-    };
-
-    return (
-        <div className="bg-lightPink min-h-screen">
-            <nav className="bg-black text-white p-4 flex justify-center items-center">
-                <div className="flex space-x-4">
-                    <a href="#home" className="mx-2 font-bold">HOME</a>
-                    <a href="#howto" className="mx-2 font-bold">HOW TO DO IT</a>
-                </div>
-            </nav>
-
-            <div id="home" className="flex flex-col items-center justify-center mt-16">
-                <h1 className="text-3xl font-bold text-center mb-8">YouTube Video Summarizer</h1>
-                <div className="w-full sm:w-3/4 md:w-1/2 flex flex-col sm:flex-row justify-center items-center px-4">
-                    <input
-                        type="text"
-                        placeholder="Enter YouTube Video Link"
-                        value={youtubeLink}
-                        onChange={(e) => setYoutubeLink(e.target.value)}
-                        className="border-2 border-black rounded p-2 w-full sm:w-2/3 mb-4 sm:mb-0"
-                    />
-                    <button
-                        onClick={handleSummarize}
-                        disabled={loading}
-                        className="bg-black text-white px-6 py-2 rounded w-auto sm:ml-4"
-                    >
-                        {loading ? 'Processing...' : 'Generate Summary'}
-                    </button>
-                </div>
-
-                {thumbnail && (
-                    <div className="mt-8">
-                        <img src={thumbnail} alt="YouTube Thumbnail" className="w-64 h-auto rounded" />
-                    </div>
-                )}
-
-                {summary && (
-                    <>
-                        <div className="mt-8 p-4 border-2 border-black rounded w-3/4 bg-white">
-                            <h2 className="text-2xl font-bold">Summary:</h2>
-                            <ReactMarkdown className="mt-4">{summary}</ReactMarkdown>
-                        </div>
-                        <button
-                            onClick={handleDownloadPDF}
-                            className="bg-black text-white px-6 py-2 rounded mt-4"
-                        >
-                            Download as PDF
-                        </button>
-                    </>
-                )}
-
-                {error && <p className="text-red-500 mt-4">{error}</p>}
-            </div>
-
-            <div id="howto" className="mt-16 p-8">
-                <h2 className="text-2xl font-bold text-center mb-8">How to Use</h2>
-                <div className="flex flex-col sm:flex-row justify-around">
-                    <div className="bg-lightBlue p-4 rounded shadow-md mb-4 sm:mb-0 sm:mr-4 max-w-xs">
-                        <h3 className="text-xl font-semibold mb-2">Step 1</h3>
-                        <p>Enter the YouTube video link in the input field.</p>
-                    </div>
-                    <div className="bg-lightBlue p-4 rounded shadow-md mb-4 sm:mb-0 sm:mr-4 max-w-xs">
-                        <h3 className="text-xl font-semibold mb-2">Step 2</h3>
-                        <p>Click on the 'Generate Summary' button to get the video summary.</p>
-                    </div>
-                    <div className="bg-lightBlue p-4 rounded shadow-md max-w-xs">
-                        <h3 className="text-xl font-semibold mb-2">Step 3</h3>
-                        <p>Download the summary as a PDF using the 'Download as PDF' button.</p>
-                    </div>
-                </div>
-            </div>
+        {/* Search bar */}
+        <div className="mb-4">
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="w-full p-2 border rounded-md"
+            placeholder="Enter topic"
+          />
+          <button
+            onClick={handleSearch}
+            className="mt-2 w-full bg-blue-500 text-white p-2 rounded-md"
+          >
+            Search Videos
+          </button>
         </div>
-    );
+
+        {/* Video list */}
+        {loading ? (
+          <p className="text-center">Loading...</p>
+        ) : (
+          <div>
+            {videos.length > 0 && (
+              <div className="space-y-4">
+                {videos.map((video) => (
+                  <div key={video.url} className="flex items-center space-x-4 border-b pb-4">
+                    <img
+                      src={video.thumbnail}
+                      alt={video.title}
+                      className="w-16 h-16 rounded-md"
+                    />
+                    <div className="flex-1">
+                      <h3 className="font-semibold">{video.title}</h3>
+                      <a
+                        href={video.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500"
+                      >
+                        Watch Video
+                      </a>
+                    </div>
+                    <button
+                      onClick={() => handleSummarize(video.url)}
+                      className="bg-green-500 text-white p-2 rounded-md"
+                    >
+                      Summarize
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Display video summary */}
+            {summary && (
+              <div className="mt-6 bg-gray-50 p-4 rounded-md">
+                <h2 className="text-lg font-bold mb-2">Summary</h2>
+                <ReactMarkdown>{summary}</ReactMarkdown>  {/* Render summary as markdown */}
+                
+                {/* Button to download PDF */}
+                <button
+                  onClick={() => handleDownloadPDF(videos[0].url)} // Pass the first video URL
+                  className="mt-4 bg-yellow-500 text-white p-2 rounded-md"
+                >
+                  Download as PDF
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default App;
